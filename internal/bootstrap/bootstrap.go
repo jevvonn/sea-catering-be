@@ -6,7 +6,16 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jevvonn/sea-catering-be/config"
+	userRepo "github.com/jevvonn/sea-catering-be/internal/app/user/repository"
+
+	authHandler "github.com/jevvonn/sea-catering-be/internal/app/auth/interface/rest"
+	authUsecase "github.com/jevvonn/sea-catering-be/internal/app/auth/usecase"
+
 	"github.com/jevvonn/sea-catering-be/internal/infra/postgresql"
+	"github.com/jevvonn/sea-catering-be/internal/infra/validator"
+
+	"github.com/gofiber/swagger"
+	_ "github.com/jevvonn/sea-catering-be/docs"
 )
 
 const idleTimeout = 5 * time.Second
@@ -26,16 +35,31 @@ func Start() error {
 		conf.DbName,
 	)
 
-	_, err := postgresql.New(dsn)
+	db, err := postgresql.New(dsn)
 	if err != nil {
 		panic(err)
 	}
+
+	validator := validator.NewValidator()
+
+	// For migrating the database by command
+	CommandHandler(db)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message": "Welcome to Sea Catering API",
 		})
 	})
+
+	app.Get("/docs/*", swagger.HandlerDefault)
+
+	apiRouter := app.Group("/api")
+
+	userRepo := userRepo.NewUserPostgreSQL(db)
+
+	authUsecase := authUsecase.NewAuthUsecase(userRepo)
+
+	authHandler.NewAuthHandler(apiRouter, authUsecase, validator)
 
 	addr := fmt.Sprintf("localhost:%s", conf.AppPort)
 	if conf.AppEnv == "production" {

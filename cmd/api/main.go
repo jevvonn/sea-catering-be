@@ -11,7 +11,11 @@ import (
 // @description This is an API for SEA Catering application.
 // @contact.name Jevon Mozart
 // @contact.email jmcb1602@gmail.com
-// @BasePath /
+// @BasePath /api
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Example Value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 func main() {
 	if err := bootstrap.Start(); err != nil {
 		panic(fmt.Sprintf("Failed to start application: %v", err))

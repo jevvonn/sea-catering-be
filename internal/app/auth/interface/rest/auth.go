@@ -28,6 +28,14 @@ func NewAuthHandler(
 	router.Get("/auth/session", middleware.Authenticated, handler.Session)
 }
 
+// @Tags         Auth
+// @Summary      Login as User
+// @Accept       json
+// @Produce      json
+// @Param        request  body  dto.LoginRequest  true  "Request body"
+// @Router       /auth/login [post]
+// @Success      200  {object}  dto.LoginResponse
+// @Failure      400  {object}  models.JSONResponseModel
 func (h *AuthHandler) Login(ctx *fiber.Ctx) error {
 	var req dto.LoginRequest
 	err := ctx.BodyParser(&req)
@@ -65,6 +73,14 @@ func (h *AuthHandler) Login(ctx *fiber.Ctx) error {
 	)
 }
 
+// @Tags         Auth
+// @Summary      Register as User
+// @Accept       json
+// @Produce      json
+// @Param        request  body  dto.RegisterRequest  true  "Request body"
+// @Router       /auth/register [post]
+// @Success      200  {object}  models.JSONResponseModel
+// @Failure      400  {object}  models.JSONResponseModel
 func (h *AuthHandler) Register(ctx *fiber.Ctx) error {
 	var req dto.RegisterRequest
 	err := ctx.BodyParser(&req)
@@ -101,6 +117,14 @@ func (h *AuthHandler) Register(ctx *fiber.Ctx) error {
 	)
 }
 
+// @Tags         Auth
+// @Summary      Get User Session
+// @Produce      json
+// @Router       /auth/session [get]
+// @Security     BearerAuth
+// @Success      200  {object}  dto.SessionResponse
+// @Failure      401  {object}  models.JSONResponseModel
+// @Failure      400  {object}  models.JSONResponseModel
 func (h *AuthHandler) Session(ctx *fiber.Ctx) error {
 	res, err := h.authUsecase.Session(ctx)
 	if err != nil {

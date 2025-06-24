@@ -5,8 +5,11 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	"github.com/jevvonn/sea-catering-be/config"
 	"github.com/jevvonn/sea-catering-be/internal/infra/postgresql"
+
+	_ "github.com/jevvonn/sea-catering-be/docs"
 )
 
 const idleTimeout = 5 * time.Second
@@ -39,6 +42,8 @@ func Start() error {
 			"message": "Welcome to Sea Catering API",
 		})
 	})
+
+	app.Get("/docs/*", swagger.HandlerDefault)
 
 	addr := fmt.Sprintf("localhost:%s", conf.AppPort)
 	if conf.AppEnv == "production" {

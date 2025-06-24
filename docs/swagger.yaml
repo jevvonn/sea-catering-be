@@ -1,0 +1,10 @@
+basePath: /
+info:
+  contact:
+    email: jmcb1602@gmail.com
+    name: Jevon Mozart
+  description: This is an API for SEA Catering application.
+  title: SEA Catering API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

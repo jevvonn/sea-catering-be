@@ -1,0 +1,14 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is an API for SEA Catering application.",
+        "title": "SEA Catering API",
+        "contact": {
+            "name": "Jevon Mozart",
+            "email": "jmcb1602@gmail.com"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {}
+}

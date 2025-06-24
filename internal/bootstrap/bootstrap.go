@@ -26,10 +26,13 @@ func Start() error {
 		conf.DbName,
 	)
 
-	_, err := postgresql.New(dsn)
+	db, err := postgresql.New(dsn)
 	if err != nil {
 		panic(err)
 	}
+
+	// For migrating the database by command
+	CommandHandler(db)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{

@@ -41,6 +41,21 @@ definitions:
       name:
         type: string
     type: object
+  dto.TestimonialRequest:
+    properties:
+      message:
+        type: string
+      name:
+        type: string
+      rating:
+        maximum: 5
+        minimum: 1
+        type: number
+    required:
+    - message
+    - name
+    - rating
+    type: object
   models.JSONResponseModel:
     properties:
       data: {}
@@ -128,6 +143,57 @@ paths:
       summary: Get User Session
       tags:
       - Auth
+  /testimonials:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+      summary: Get Testimonial
+      tags:
+      - Testimonial
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TestimonialRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+      summary: Create a new Testimonial
+      tags:
+      - Testimonial
 securityDefinitions:
   BearerAuth:
     description: 'Example Value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'

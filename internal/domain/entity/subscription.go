@@ -9,10 +9,10 @@ import (
 type Subscription struct {
 	ID uuid.UUID `gorm:"primaryKey" json:"id,omitempty"`
 
-	UserID uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_user_plan" json:"user_id,omitempty"`
+	UserID uuid.UUID `gorm:"type:uuid;not null;" json:"user_id,omitempty"`
 	User   User      `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"user,omitempty"`
 
-	PlanId string `gorm:"type:varchar(10);not null;uniqueIndex:idx_user_plan" json:"plan_id,omitempty"`
+	PlanId string `gorm:"type:varchar(10);not null;" json:"plan_id,omitempty"`
 	Plans  Plans  `gorm:"foreignKey:PlanId;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"plan,omitempty"`
 
 	Name        string `gorm:"type:varchar(255);not null" json:"name,omitempty"`

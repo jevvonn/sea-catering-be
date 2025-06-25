@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -16,7 +17,7 @@ import (
 
 type SubscriptionUsecaseItf interface {
 	GetSubscriptions(ctx *fiber.Ctx) ([]dto.GetSubscriptionResponse, error)
-	GetSpecific(ctx *fiber.Ctx, subscriptionId string) (dto.GetSubscriptionResponse, error)
+	GetSpecific(ctx *fiber.Ctx) (dto.GetSubscriptionResponse, error)
 	CreateSubscription(ctx *fiber.Ctx, req dto.CreateSubscriptionRequest) error
 	UpdateSubscription(ctx *fiber.Ctx, req dto.UpdateSubscriptionRequest) error
 }
@@ -49,17 +50,26 @@ func (u *SubscriptionUsecase) GetSubscriptions(ctx *fiber.Ctx) ([]dto.GetSubscri
 
 	var response []dto.GetSubscriptionResponse
 	for _, sub := range subscriptions {
+		allergies := []string{}
+		if sub.Allergies != "" {
+			allergies = strings.Split(sub.Allergies, ",")
+		}
+
 		response = append(response, dto.GetSubscriptionResponse{
-			ID:             sub.ID,
-			UserID:         sub.UserID,
-			User:           sub.User,
+			ID:     sub.ID,
+			UserID: sub.UserID,
+			User: dto.GetUserResponse{
+				ID:    sub.User.ID,
+				Name:  sub.User.Name,
+				Email: sub.User.Email,
+			},
 			PlanId:         sub.PlanId,
 			Plans:          sub.Plans,
 			Name:           sub.Name,
 			PhoneNumber:    sub.PhoneNumber,
 			Mealtypes:      strings.Split(sub.Mealtypes, ","),
 			DeliveryDays:   strings.Split(sub.DeliveryDays, ","),
-			Allergies:      strings.Split(sub.Allergies, ","),
+			Allergies:      allergies,
 			TotalPrice:     sub.TotalPrice,
 			Status:         sub.Status,
 			PauseStartDate: sub.PauseStartDate,
@@ -72,12 +82,18 @@ func (u *SubscriptionUsecase) GetSubscriptions(ctx *fiber.Ctx) ([]dto.GetSubscri
 	return response, nil
 }
 
-func (u *SubscriptionUsecase) GetSpecific(ctx *fiber.Ctx, subscriptionId string) (dto.GetSubscriptionResponse, error) {
+func (u *SubscriptionUsecase) GetSpecific(ctx *fiber.Ctx) (dto.GetSubscriptionResponse, error) {
 	userId := ctx.Locals("userId").(string)
 	role := ctx.Locals("role").(string)
+	param := ctx.Params("id")
+
+	subscriptionId, err := uuid.Parse(param)
+	if err != nil {
+		return dto.GetSubscriptionResponse{}, errors.New("invalid subscription ID format")
+	}
 
 	subscription := entity.Subscription{
-		ID: uuid.MustParse(subscriptionId),
+		ID: subscriptionId,
 	}
 
 	if role != constant.RoleAdmin {
@@ -93,17 +109,26 @@ func (u *SubscriptionUsecase) GetSpecific(ctx *fiber.Ctx, subscriptionId string)
 		return dto.GetSubscriptionResponse{}, errors.New("unauthorized access to subscription")
 	}
 
+	allergies := []string{}
+	if result.Allergies != "" {
+		allergies = strings.Split(result.Allergies, ",")
+	}
+
 	response := dto.GetSubscriptionResponse{
-		ID:             result.ID,
-		UserID:         result.UserID,
-		User:           result.User,
+		ID:     result.ID,
+		UserID: result.UserID,
+		User: dto.GetUserResponse{
+			ID:    result.User.ID,
+			Name:  result.User.Name,
+			Email: result.User.Email,
+		},
 		PlanId:         result.PlanId,
 		Plans:          result.Plans,
 		Name:           result.Name,
 		PhoneNumber:    result.PhoneNumber,
 		Mealtypes:      strings.Split(result.Mealtypes, ","),
 		DeliveryDays:   strings.Split(result.DeliveryDays, ","),
-		Allergies:      strings.Split(result.Allergies, ","),
+		Allergies:      allergies,
 		TotalPrice:     result.TotalPrice,
 		Status:         result.Status,
 		PauseStartDate: result.PauseStartDate,
@@ -122,12 +147,17 @@ func (u *SubscriptionUsecase) CreateSubscription(ctx *fiber.Ctx, req dto.CreateS
 		ID: req.PlanId,
 	})
 	if err != nil {
-		return err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("plan not found")
+		} else {
+			return err
+		}
 	}
 
 	checkedSub, err := u.subRepo.GetSpecific(entity.Subscription{
 		UserID: uuid.MustParse(userId),
 		PlanId: req.PlanId,
+		Status: constant.SubscriptionStatusActive,
 	})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
@@ -145,6 +175,7 @@ func (u *SubscriptionUsecase) CreateSubscription(ctx *fiber.Ctx, req dto.CreateS
 	totalPrice := plans.Price * float64(mealTypeLength) * float64(deliveryDaysLength) * float64(allergiesLength) * constant.SubscriptionTAX
 
 	subscription := entity.Subscription{
+		ID:           uuid.New(),
 		UserID:       uuid.MustParse(userId),
 		PlanId:       req.PlanId,
 		Name:         req.Name,
@@ -166,10 +197,15 @@ func (u *SubscriptionUsecase) CreateSubscription(ctx *fiber.Ctx, req dto.CreateS
 func (u *SubscriptionUsecase) UpdateSubscription(ctx *fiber.Ctx, req dto.UpdateSubscriptionRequest) error {
 	userId := ctx.Locals("userId").(string)
 	role := ctx.Locals("role").(string)
-	subscriptionId := ctx.Params("subscriptionId")
+	param := ctx.Params("id")
+
+	subscriptionId, err := uuid.Parse(param)
+	if err != nil {
+		return errors.New("invalid subscription ID format")
+	}
 
 	subscription, err := u.subRepo.GetSpecific(entity.Subscription{
-		ID: uuid.MustParse(subscriptionId),
+		ID: subscriptionId,
 	})
 	if err != nil {
 		return err
@@ -179,13 +215,56 @@ func (u *SubscriptionUsecase) UpdateSubscription(ctx *fiber.Ctx, req dto.UpdateS
 		return errors.New("unauthorized access to subscription")
 	}
 
+	if subscription.Status == constant.SubscriptionStatusCancelled {
+		return errors.New("subscription is already cancelled")
+	}
+
+	pauseStartDate := new(time.Time)
+	pauseEndDate := new(time.Time)
+	parseLayout := "02-01-2006"
+
+	if req.PauseStartDate != "" {
+		if req.PauseEndDate == "" {
+			return errors.New("pause end date is required when pause start date is provided")
+		}
+
+		parsedPauseStartDate, err := time.Parse(parseLayout, req.PauseStartDate)
+		if err != nil {
+			return errors.New("invalid pause start date format")
+		}
+
+		parsedPauseEndDate, err := time.Parse(parseLayout, req.PauseEndDate)
+		if err != nil {
+			return errors.New("invalid pause end date format")
+		}
+
+		if parsedPauseStartDate.Before(time.Now()) {
+			return errors.New("pause start date cannot be in the past")
+		}
+
+		if parsedPauseStartDate.After(parsedPauseEndDate) {
+			return errors.New("pause start date cannot be after pause end date")
+		}
+
+		pauseStartDate = &parsedPauseStartDate
+		pauseEndDate = &parsedPauseEndDate
+	} else {
+		pauseStartDate = nil
+		pauseEndDate = nil
+	}
+
+	if req.Status == constant.SubscriptionStatusActive {
+		pauseStartDate = nil
+		pauseEndDate = nil
+	}
+
 	subUpdate := entity.Subscription{
 		ID:             subscription.ID,
 		Name:           req.Name,
 		PhoneNumber:    req.PhoneNumber,
 		Status:         req.Status,
-		PauseStartDate: &req.PauseStartDate,
-		PauseEndDate:   &req.PauseEndDate,
+		PauseStartDate: pauseStartDate,
+		PauseEndDate:   pauseEndDate,
 	}
 
 	if err := u.subRepo.UpdateSubscription(subUpdate); err != nil {

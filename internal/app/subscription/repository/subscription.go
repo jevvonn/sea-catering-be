@@ -37,7 +37,7 @@ func (r *SubscriptionPostgreSQL) GetSpecific(subscription entity.Subscription) (
 		return entity.Subscription{}, err
 	}
 
-	return subscription, nil
+	return result, nil
 }
 
 func (r *SubscriptionPostgreSQL) CreateSubscription(subscription entity.Subscription) error {
@@ -53,7 +53,15 @@ func (r *SubscriptionPostgreSQL) UpdateSubscription(subscription entity.Subscrip
 		return gorm.ErrRecordNotFound
 	}
 
-	if err := r.db.Updates(&subscription).Error; err != nil {
+	data := map[string]any{
+		"name":             subscription.Name,
+		"phone_number":     subscription.PhoneNumber,
+		"status":           subscription.Status,
+		"pause_start_date": subscription.PauseStartDate,
+		"pause_end_date":   subscription.PauseEndDate,
+	}
+
+	if err := r.db.Model(entity.Subscription{}).Where("id = ?", subscription.ID).Updates(&data).Error; err != nil {
 		return err
 	}
 

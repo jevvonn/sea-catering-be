@@ -1,5 +1,85 @@
 basePath: /api
 definitions:
+  dto.CreateSubscriptionRequest:
+    properties:
+      allergies:
+        items:
+          type: string
+        type: array
+      delivery_days:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      mealtype:
+        items:
+          type: string
+        minItems: 1
+        type: array
+      name:
+        type: string
+      phone_number:
+        type: string
+      plan_id:
+        type: string
+    required:
+    - allergies
+    - delivery_days
+    - mealtype
+    - name
+    - phone_number
+    - plan_id
+    type: object
+  dto.GetSubscriptionResponse:
+    properties:
+      allergies:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      delivery_days:
+        items:
+          type: string
+        type: array
+      id:
+        type: string
+      mealtype:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      pause_end_date:
+        type: string
+      pause_start_date:
+        type: string
+      phone_number:
+        type: string
+      plan:
+        $ref: '#/definitions/entity.Plans'
+      plan_id:
+        type: string
+      status:
+        type: string
+      total_price:
+        type: number
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/dto.GetUserResponse'
+      user_id:
+        type: string
+    type: object
+  dto.GetUserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -63,15 +143,28 @@ definitions:
       name:
         type: string
       price:
-        minimum: 0
+        minimum: 1
         type: number
       slogan:
         type: string
-    required:
-    - features
-    - name
-    - price
-    - slogan
+    type: object
+  dto.UpdateSubscriptionRequest:
+    properties:
+      name:
+        type: string
+      pause_end_date:
+        example: 30-06-2025
+        type: string
+      pause_start_date:
+        example: 27-06-2025
+        type: string
+      phone_number:
+        type: string
+      status:
+        enum:
+        - ACTIVE
+        - CANCELLED
+        type: string
     type: object
   entity.Plans:
     properties:
@@ -234,6 +327,121 @@ paths:
       summary: Update a Testimonial
       tags:
       - Plans
+  /subscriptions:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.JSONResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.GetSubscriptionResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get All My Subscriptions
+      tags:
+      - Subscription
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Create Subscription
+      tags:
+      - Subscription
+  /subscriptions/{subscriptionId}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: subscriptionId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.JSONResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.GetSubscriptionResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get Spesicfic Subscription
+      tags:
+      - Subscription
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: subscriptionId
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateSubscriptionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update Subscription
+      tags:
+      - Subscription
   /testimonials:
     get:
       consumes:

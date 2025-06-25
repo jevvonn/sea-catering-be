@@ -1,0 +1,61 @@
+package repository
+
+import (
+	"github.com/google/uuid"
+	"github.com/jevvonn/sea-catering-be/internal/domain/entity"
+	"gorm.io/gorm"
+)
+
+type SubscriptionPostgreSQLItf interface {
+	GetSubscriptions(cond entity.Subscription) ([]entity.Subscription, error)
+	GetSpecific(subscription entity.Subscription) (entity.Subscription, error)
+	CreateSubscription(subscription entity.Subscription) error
+	UpdateSubscription(subscription entity.Subscription) error
+}
+
+type SubscriptionPostgreSQL struct {
+	db *gorm.DB
+}
+
+func NewSubscriptionPostgreSQL(db *gorm.DB) SubscriptionPostgreSQLItf {
+	return &SubscriptionPostgreSQL{db}
+}
+
+func (r *SubscriptionPostgreSQL) GetSubscriptions(cond entity.Subscription) ([]entity.Subscription, error) {
+	var subscriptions []entity.Subscription
+	if err := r.db.Preload("Plans").Preload("User").Where(cond).Find(&subscriptions).Error; err != nil {
+		return nil, err
+	}
+
+	return subscriptions, nil
+}
+
+func (r *SubscriptionPostgreSQL) GetSpecific(subscription entity.Subscription) (entity.Subscription, error) {
+	var result entity.Subscription
+
+	if err := r.db.Preload("Plans").Preload("User").First(&result, &subscription).Error; err != nil {
+		return entity.Subscription{}, err
+	}
+
+	return subscription, nil
+}
+
+func (r *SubscriptionPostgreSQL) CreateSubscription(subscription entity.Subscription) error {
+	if err := r.db.Create(&subscription).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *SubscriptionPostgreSQL) UpdateSubscription(subscription entity.Subscription) error {
+	if subscription.ID == uuid.Nil {
+		return gorm.ErrRecordNotFound
+	}
+
+	if err := r.db.Updates(&subscription).Error; err != nil {
+		return err
+	}
+
+	return nil
+}

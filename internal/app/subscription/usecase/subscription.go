@@ -165,6 +165,7 @@ func (u *SubscriptionUsecase) CreateSubscription(ctx *fiber.Ctx, req dto.CreateS
 
 func (u *SubscriptionUsecase) UpdateSubscription(ctx *fiber.Ctx, req dto.UpdateSubscriptionRequest) error {
 	userId := ctx.Locals("userId").(string)
+	role := ctx.Locals("role").(string)
 	subscriptionId := ctx.Params("subscriptionId")
 
 	subscription, err := u.subRepo.GetSpecific(entity.Subscription{
@@ -174,7 +175,7 @@ func (u *SubscriptionUsecase) UpdateSubscription(ctx *fiber.Ctx, req dto.UpdateS
 		return err
 	}
 
-	if subscription.UserID != uuid.MustParse(userId) {
+	if subscription.UserID != uuid.MustParse(userId) && role != constant.RoleAdmin {
 		return errors.New("unauthorized access to subscription")
 	}
 

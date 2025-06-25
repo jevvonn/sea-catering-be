@@ -6,10 +6,14 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jevvonn/sea-catering-be/config"
+	testimonialRepo "github.com/jevvonn/sea-catering-be/internal/app/testimonial/repository"
 	userRepo "github.com/jevvonn/sea-catering-be/internal/app/user/repository"
 
-	authHandler "github.com/jevvonn/sea-catering-be/internal/app/auth/interface/rest"
 	authUsecase "github.com/jevvonn/sea-catering-be/internal/app/auth/usecase"
+	testimonialUsecase "github.com/jevvonn/sea-catering-be/internal/app/testimonial/usecase"
+
+	authHandler "github.com/jevvonn/sea-catering-be/internal/app/auth/interface/rest"
+	testimonialHandler "github.com/jevvonn/sea-catering-be/internal/app/testimonial/interface/rest"
 
 	"github.com/jevvonn/sea-catering-be/internal/infra/postgresql"
 	"github.com/jevvonn/sea-catering-be/internal/infra/validator"
@@ -56,10 +60,13 @@ func Start() error {
 	apiRouter := app.Group("/api")
 
 	userRepo := userRepo.NewUserPostgreSQL(db)
+	testimonialRepo := testimonialRepo.NewTestimonialPostgreSQL(db)
 
 	authUsecase := authUsecase.NewAuthUsecase(userRepo)
+	testimonialUsecase := testimonialUsecase.NewTestimonialUsecase(testimonialRepo)
 
 	authHandler.NewAuthHandler(apiRouter, authUsecase, validator)
+	testimonialHandler.NewTestimonialHandler(apiRouter, testimonialUsecase, validator)
 
 	addr := fmt.Sprintf("localhost:%s", conf.AppPort)
 	if conf.AppEnv == "production" {

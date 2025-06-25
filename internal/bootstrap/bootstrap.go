@@ -6,13 +6,19 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jevvonn/sea-catering-be/config"
+	plansRepo "github.com/jevvonn/sea-catering-be/internal/app/plans/repository"
+	subsRepo "github.com/jevvonn/sea-catering-be/internal/app/subscription/repository"
 	testimonialRepo "github.com/jevvonn/sea-catering-be/internal/app/testimonial/repository"
 	userRepo "github.com/jevvonn/sea-catering-be/internal/app/user/repository"
 
 	authUsecase "github.com/jevvonn/sea-catering-be/internal/app/auth/usecase"
+	plansUsecase "github.com/jevvonn/sea-catering-be/internal/app/plans/usecase"
+	subsUsecase "github.com/jevvonn/sea-catering-be/internal/app/subscription/usecase"
 	testimonialUsecase "github.com/jevvonn/sea-catering-be/internal/app/testimonial/usecase"
 
 	authHandler "github.com/jevvonn/sea-catering-be/internal/app/auth/interface/rest"
+	plansHandler "github.com/jevvonn/sea-catering-be/internal/app/plans/interface/rest"
+	subsHandler "github.com/jevvonn/sea-catering-be/internal/app/subscription/interface/rest"
 	testimonialHandler "github.com/jevvonn/sea-catering-be/internal/app/testimonial/interface/rest"
 
 	"github.com/jevvonn/sea-catering-be/internal/infra/postgresql"
@@ -61,12 +67,18 @@ func Start() error {
 
 	userRepo := userRepo.NewUserPostgreSQL(db)
 	testimonialRepo := testimonialRepo.NewTestimonialPostgreSQL(db)
+	plansRepo := plansRepo.NewPlansPostgreSQL(db)
+	subsRepo := subsRepo.NewSubscriptionPostgreSQL(db)
 
 	authUsecase := authUsecase.NewAuthUsecase(userRepo)
 	testimonialUsecase := testimonialUsecase.NewTestimonialUsecase(testimonialRepo)
+	plansUsecase := plansUsecase.NewPlansUsecase(plansRepo)
+	subsUsecase := subsUsecase.NewSubscriptionUsecase(subsRepo, plansRepo)
 
 	authHandler.NewAuthHandler(apiRouter, authUsecase, validator)
 	testimonialHandler.NewTestimonialHandler(apiRouter, testimonialUsecase, validator)
+	plansHandler.NewPlansHandler(apiRouter, plansUsecase, validator)
+	subsHandler.NewSubscriptionHandler(apiRouter, subsUsecase, validator)
 
 	addr := fmt.Sprintf("localhost:%s", conf.AppPort)
 	if conf.AppEnv == "production" {

@@ -7,6 +7,26 @@ import (
 	"github.com/jevvonn/sea-catering-be/internal/domain/entity"
 )
 
+type CreateSubscriptionRequest struct {
+	PlanId string `json:"plan_id,omitempty" validate:"required"`
+
+	Name        string `json:"name,omitempty" validate:"required"`
+	PhoneNumber string `json:"phone_number,omitempty" validate:"required"`
+
+	Mealtypes    []string `json:"mealtype,omitempty" validate:"required,min=1,dive,required"`
+	DeliveryDays []string `json:"delivery_days,omitempty" validate:"required,min=1,dive,required"`
+	Allergies    []string `json:"allergies,omitempty" validate:"required,dive"`
+}
+
+type UpdateSubscriptionRequest struct {
+	Name        string `json:"name,omitempty"`
+	PhoneNumber string `json:"phone_number,omitempty"`
+
+	Status         string    `json:"status,omitempty"`
+	PauseStartDate time.Time `json:"pause_start_date,omitempty"`
+	PauseEndDate   time.Time `json:"pause_end_date,omitempty"`
+}
+
 type GetSubscriptionResponse struct {
 	ID uuid.UUID `json:"id,omitempty"`
 

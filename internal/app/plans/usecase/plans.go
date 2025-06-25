@@ -32,6 +32,11 @@ func (u *PlansUsecase) GetPlans() ([]entity.Plans, error) {
 func (u *PlansUsecase) UpdatePlan(ctx *fiber.Ctx, plan dto.UpdatePlansRequest) error {
 	planID := ctx.Params("id")
 
+	_, err := u.plansRepo.GetSpecificPlans(entity.Plans{ID: planID})
+	if err != nil {
+		return err
+	}
+
 	updatedPlan := entity.Plans{
 		ID:       planID,
 		Name:     plan.Name,

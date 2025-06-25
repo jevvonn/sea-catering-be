@@ -26,6 +26,13 @@ func NewPlansHandler(
 	router.Put("/plans/:id", middleware.Authenticated, middleware.RequireRoles(constant.RoleAdmin), handler.UpdatePlan)
 }
 
+// @Tags         Plans
+// @Summary      Get All Meal Plans
+// @Accept       json
+// @Produce      json
+// @Router       /plans [get]
+// @Success      200  {object}  models.JSONResponseModel{data=[]entity.Plans}
+// @Failure      400  {object}  models.JSONResponseModel
 func (h *PlansHandler) GetPlans(ctx *fiber.Ctx) error {
 	plans, err := h.plansUsecase.GetPlans()
 	if err != nil {
@@ -45,6 +52,16 @@ func (h *PlansHandler) GetPlans(ctx *fiber.Ctx) error {
 	)
 }
 
+// @Tags         Plans
+// @Summary      Update a Testimonial
+// @Accept       json
+// @Produce      json
+// @Param        plansId path string true "Plans ID"
+// @Param        request  body  dto.UpdatePlansRequest  true  "Request body"
+// @Router       /plans/{plansId} [put]
+// @Security     BearerAuth
+// @Success      200  {object}  models.JSONResponseModel
+// @Failure      400  {object}  models.JSONResponseModel
 func (h *PlansHandler) UpdatePlan(ctx *fiber.Ctx) error {
 	var req dto.UpdatePlansRequest
 	err := ctx.BodyParser(&req)

@@ -8,6 +8,7 @@ import (
 type PlansPostgreSQLItf interface {
 	GetPlans() ([]entity.Plans, error)
 	UpdatePlan(plan entity.Plans) error
+	GetSpecificPlans(plans entity.Plans) (entity.Plans, error)
 }
 
 type PlansPostgreSQL struct {
@@ -22,6 +23,13 @@ func (r *PlansPostgreSQL) GetPlans() ([]entity.Plans, error) {
 	var plans []entity.Plans
 	if err := r.db.Find(&plans).Error; err != nil {
 		return nil, err
+	}
+	return plans, nil
+}
+
+func (r *PlansPostgreSQL) GetSpecificPlans(plans entity.Plans) (entity.Plans, error) {
+	if err := r.db.First(&plans).Error; err != nil {
+		return entity.Plans{}, err
 	}
 	return plans, nil
 }

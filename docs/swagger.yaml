@@ -56,6 +56,40 @@ definitions:
     - name
     - rating
     type: object
+  dto.UpdatePlansRequest:
+    properties:
+      features:
+        type: string
+      name:
+        type: string
+      price:
+        minimum: 0
+        type: number
+      slogan:
+        type: string
+    required:
+    - features
+    - name
+    - price
+    - slogan
+    type: object
+  entity.Plans:
+    properties:
+      created_at:
+        type: string
+      features:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      slogan:
+        type: string
+      updated_at:
+        type: string
+    type: object
   models.JSONResponseModel:
     properties:
       data: {}
@@ -143,6 +177,63 @@ paths:
       summary: Get User Session
       tags:
       - Auth
+  /plans:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.JSONResponseModel'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/entity.Plans'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+      summary: Get All Meal Plans
+      tags:
+      - Plans
+  /plans/{plansId}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Plans ID
+        in: path
+        name: plansId
+        required: true
+        type: string
+      - description: Request body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatePlansRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Update a Testimonial
+      tags:
+      - Plans
   /testimonials:
     get:
       consumes:

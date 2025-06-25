@@ -37,7 +37,7 @@ func Authenticated(ctx *fiber.Ctx) error {
 	}
 
 	ctx.Locals("userId", claims["sub"])
-	ctx.Locals("username", claims["username"])
+	ctx.Locals("email", claims["email"])
 	ctx.Locals("role", claims["role"])
 
 	return ctx.Next()

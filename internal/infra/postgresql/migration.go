@@ -13,6 +13,7 @@ func Migrate(db *gorm.DB, command string) {
 		&entity.User{},
 		&entity.Testimonial{},
 		&entity.Plans{},
+		&entity.Subscription{},
 	}
 
 	var err error

@@ -1,6 +1,8 @@
 package postgresql
 
 import (
+	"fmt"
+
 	"github.com/jevvonn/sea-catering-be/internal/domain/entity"
 	"gorm.io/gorm"
 )
@@ -10,6 +12,7 @@ func Migrate(db *gorm.DB, command string) {
 	tables := []any{
 		&entity.User{},
 		&entity.Testimonial{},
+		&entity.Plans{},
 	}
 
 	var err error
@@ -24,4 +27,6 @@ func Migrate(db *gorm.DB, command string) {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("Migration %s completed successfully\n", command)
 }

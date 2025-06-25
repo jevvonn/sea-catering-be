@@ -20,4 +20,9 @@ func CommandHandler(db *gorm.DB) {
 		postgresql.Migrate(db, migrationCmd)
 		os.Exit(0)
 	}
+
+	if seederCmd {
+		postgresql.Seed(db)
+		os.Exit(0)
+	}
 }

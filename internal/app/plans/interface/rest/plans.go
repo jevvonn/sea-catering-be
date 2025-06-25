@@ -3,6 +3,7 @@ package rest
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jevvonn/sea-catering-be/internal/app/plans/usecase"
+	"github.com/jevvonn/sea-catering-be/internal/constant"
 	"github.com/jevvonn/sea-catering-be/internal/domain/dto"
 	"github.com/jevvonn/sea-catering-be/internal/infra/validator"
 	"github.com/jevvonn/sea-catering-be/internal/middleware"
@@ -22,7 +23,7 @@ func NewPlansHandler(
 	handler := PlansHandler{plansUsecase, validator}
 
 	router.Get("/plans", handler.GetPlans)
-	router.Put("/plans/:id", middleware.Authenticated, handler.UpdatePlan)
+	router.Put("/plans/:id", middleware.Authenticated, middleware.RequireRoles(constant.RoleAdmin), handler.UpdatePlan)
 }
 
 func (h *PlansHandler) GetPlans(ctx *fiber.Ctx) error {

@@ -32,18 +32,24 @@ RUN go mod download
 # Copy local code to the container image.
 COPY . ./
 
+# Install swag for API documentation generation.
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN swag init -g cmd/api/main.go
+
 # Build the binary.
 RUN mkdir build
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./build/server ./cmd/api
 
 # Use the official Debian slim image for a lean production container.
 FROM alpine:latest
-RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
+RUN apk update && apk add --no-cache ca-certificates tzdata && update-ca-certificates
+ENV TZ=Asia/Jakarta
 
 # Copy the binary to the production image from the builder stage.
 COPY --from=builder /app/build/server /app/server
 COPY .env .env
 
+RUN chmod +x /app/server
 EXPOSE 3001
 
 # Run the web service on container startup.

@@ -1,4 +1,17 @@
 services:
+  app:
+    container_name: sea-catering-app
+    build: .
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    env_file:
+      - .env
+    environment:
+      - APP_ENV=production
+      - DB_HOST=db
+    depends_on:
+      - db
+    command: ["/app/server"]
   db:
     container_name: sea-catering-db
     image: postgres:16.1-alpine

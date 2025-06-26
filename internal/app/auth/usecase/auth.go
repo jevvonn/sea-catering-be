@@ -116,5 +116,6 @@ func (u *AuthUsecase) Session(ctx *fiber.Ctx) (dto.SessionResponse, error) {
 		ID:    user.ID.String(),
 		Name:  user.Name,
 		Email: user.Email,
+		Role:  user.Role,
 	}, nil
 }

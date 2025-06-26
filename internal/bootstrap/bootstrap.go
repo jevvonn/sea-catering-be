@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	cors "github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/jevvonn/sea-catering-be/config"
+
 	plansRepo "github.com/jevvonn/sea-catering-be/internal/app/plans/repository"
 	subsRepo "github.com/jevvonn/sea-catering-be/internal/app/subscription/repository"
 	testimonialRepo "github.com/jevvonn/sea-catering-be/internal/app/testimonial/repository"
@@ -23,6 +25,8 @@ import (
 
 	"github.com/jevvonn/sea-catering-be/internal/infra/postgresql"
 	"github.com/jevvonn/sea-catering-be/internal/infra/validator"
+
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 
 	"github.com/gofiber/swagger"
 	_ "github.com/jevvonn/sea-catering-be/docs"
@@ -55,9 +59,22 @@ func Start() error {
 	// For migrating the database by command
 	CommandHandler(db)
 
+	app.Use(cors.New())
+	app.Use(limiter.New(limiter.Config{
+		Max:               20,
+		Expiration:        30 * time.Second,
+		LimiterMiddleware: limiter.SlidingWindow{},
+		LimitReached: func(c *fiber.Ctx) error {
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "Too many requests, please try again later.",
+			})
+		},
+	}))
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message": "Welcome to Sea Catering API",
+			"docs":    "/docs",
 		})
 	})
 

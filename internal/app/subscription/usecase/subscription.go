@@ -251,7 +251,7 @@ func (u *SubscriptionUsecase) UpdateSubscription(ctx *fiber.Ctx, req dto.UpdateS
 			return errors.New("invalid pause end date format")
 		}
 
-		if parsedPauseStartDate.Before(time.Now()) {
+		if parsedPauseStartDate.Before(time.Now().Add(-1 * time.Hour)) {
 			return errors.New("pause start date cannot be in the past")
 		}
 

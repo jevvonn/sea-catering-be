@@ -54,6 +54,12 @@ func (u *SubscriptionUsecase) GetSubscriptions(ctx *fiber.Ctx) ([]dto.GetSubscri
 		if sub.Allergies != "" {
 			allergies = strings.Split(sub.Allergies, ",")
 		}
+		isPaused := false
+		if sub.PauseStartDate != nil && sub.PauseEndDate != nil {
+			if sub.PauseStartDate.Before(time.Now()) && sub.PauseEndDate.After(time.Now()) {
+				isPaused = true
+			}
+		}
 
 		response = append(response, dto.GetSubscriptionResponse{
 			ID:     sub.ID,
@@ -76,6 +82,7 @@ func (u *SubscriptionUsecase) GetSubscriptions(ctx *fiber.Ctx) ([]dto.GetSubscri
 			PauseEndDate:   sub.PauseEndDate,
 			CreatedAt:      sub.CreatedAt,
 			UpdatedAt:      sub.UpdatedAt,
+			IsPaused:       isPaused,
 		})
 	}
 
@@ -113,6 +120,12 @@ func (u *SubscriptionUsecase) GetSpecific(ctx *fiber.Ctx) (dto.GetSubscriptionRe
 	if result.Allergies != "" {
 		allergies = strings.Split(result.Allergies, ",")
 	}
+	isPaused := false
+	if result.PauseStartDate != nil && result.PauseEndDate != nil {
+		if result.PauseStartDate.Before(time.Now()) && result.PauseEndDate.After(time.Now()) {
+			isPaused = true
+		}
+	}
 
 	response := dto.GetSubscriptionResponse{
 		ID:     result.ID,
@@ -135,6 +148,7 @@ func (u *SubscriptionUsecase) GetSpecific(ctx *fiber.Ctx) (dto.GetSubscriptionRe
 		PauseEndDate:   result.PauseEndDate,
 		CreatedAt:      result.CreatedAt,
 		UpdatedAt:      result.UpdatedAt,
+		IsPaused:       isPaused,
 	}
 
 	return response, nil

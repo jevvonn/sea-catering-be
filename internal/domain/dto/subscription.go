@@ -46,6 +46,7 @@ type GetSubscriptionResponse struct {
 	TotalPrice float64 `json:"total_price"`
 
 	Status         string     `json:"status"`
+	IsPaused       bool       `json:"is_paused"`
 	PauseStartDate *time.Time `json:"pause_start_date"`
 	PauseEndDate   *time.Time `json:"pause_end_date"`
 

@@ -65,12 +65,8 @@ func (r *SubscriptionPostgreSQL) UpdateSubscription(subscription entity.Subscrip
 	if subscription.Status != "" {
 		data["status"] = subscription.Status
 	}
-	if subscription.PauseStartDate != nil {
-		data["pause_start_date"] = subscription.PauseStartDate
-	}
-	if subscription.PauseEndDate != nil {
-		data["pause_end_date"] = subscription.PauseEndDate
-	}
+	data["pause_start_date"] = subscription.PauseStartDate
+	data["pause_end_date"] = subscription.PauseEndDate
 
 	if err := r.db.Model(entity.Subscription{}).Where("id = ?", subscription.ID).Updates(&data).Error; err != nil {
 		return err

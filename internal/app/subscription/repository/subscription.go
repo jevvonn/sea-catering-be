@@ -53,12 +53,23 @@ func (r *SubscriptionPostgreSQL) UpdateSubscription(subscription entity.Subscrip
 		return gorm.ErrRecordNotFound
 	}
 
-	data := map[string]any{
-		"name":             subscription.Name,
-		"phone_number":     subscription.PhoneNumber,
-		"status":           subscription.Status,
-		"pause_start_date": subscription.PauseStartDate,
-		"pause_end_date":   subscription.PauseEndDate,
+	data := map[string]any{}
+
+	if subscription.Name != "" {
+		data["name"] = subscription.Name
+	}
+
+	if subscription.PhoneNumber != "" {
+		data["phone_number"] = subscription.PhoneNumber
+	}
+	if subscription.Status != "" {
+		data["status"] = subscription.Status
+	}
+	if subscription.PauseStartDate != nil {
+		data["pause_start_date"] = subscription.PauseStartDate
+	}
+	if subscription.PauseEndDate != nil {
+		data["pause_end_date"] = subscription.PauseEndDate
 	}
 
 	if err := r.db.Model(entity.Subscription{}).Where("id = ?", subscription.ID).Updates(&data).Error; err != nil {

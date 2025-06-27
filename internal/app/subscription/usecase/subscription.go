@@ -184,9 +184,8 @@ func (u *SubscriptionUsecase) CreateSubscription(ctx *fiber.Ctx, req dto.CreateS
 
 	mealTypeLength := len(req.Mealtypes)
 	deliveryDaysLength := len(req.DeliveryDays)
-	allergiesLength := len(req.Allergies)
 
-	totalPrice := plans.Price * float64(mealTypeLength) * float64(deliveryDaysLength) * float64(allergiesLength) * constant.SubscriptionTAX
+	totalPrice := plans.Price * float64(mealTypeLength) * float64(deliveryDaysLength) * constant.SubscriptionTAX
 
 	subscription := entity.Subscription{
 		ID:           uuid.New(),

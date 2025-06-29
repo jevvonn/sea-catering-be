@@ -316,6 +316,65 @@ const docTemplate = `{
                 }
             }
         },
+        "/subscriptions/report": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Subscription"
+                ],
+                "summary": "Get Report Subscription",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "e.g 29-06-2025",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "e.g 30-06-2025",
+                        "name": "end_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/models.JSONResponseModel"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.GetSubscriptionReportResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.JSONResponseModel"
+                        }
+                    }
+                }
+            }
+        },
         "/subscriptions/{subscriptionId}": {
             "get": {
                 "security": [
@@ -542,6 +601,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GetSubscriptionReportResponse": {
+            "type": "object",
+            "properties": {
+                "active_subscriptions_by_date": {
+                    "type": "integer"
+                },
+                "total_active_subscriptions": {
+                    "type": "integer"
+                },
+                "total_revenue": {
+                    "type": "number"
+                },
+                "total_revenue_by_date": {
+                    "type": "number"
+                }
+            }
+        },
         "dto.GetSubscriptionResponse": {
             "type": "object",
             "properties": {
@@ -562,6 +638,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_paused": {
+                    "type": "boolean"
                 },
                 "mealtype": {
                     "type": "array",
@@ -675,6 +754,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                },
+                "role": {
                     "type": "string"
                 }
             }

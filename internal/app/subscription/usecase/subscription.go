@@ -20,6 +20,7 @@ type SubscriptionUsecaseItf interface {
 	GetSpecific(ctx *fiber.Ctx) (dto.GetSubscriptionResponse, error)
 	CreateSubscription(ctx *fiber.Ctx, req dto.CreateSubscriptionRequest) error
 	UpdateSubscription(ctx *fiber.Ctx, req dto.UpdateSubscriptionRequest) error
+	GetSubscriptionsReport(ctx *fiber.Ctx) (dto.GetSubscriptionReportResponse, error)
 }
 
 type SubscriptionUsecase struct {
@@ -288,4 +289,68 @@ func (u *SubscriptionUsecase) UpdateSubscription(ctx *fiber.Ctx, req dto.UpdateS
 	}
 
 	return nil
+}
+
+func (u *SubscriptionUsecase) GetSubscriptionsReport(ctx *fiber.Ctx) (dto.GetSubscriptionReportResponse, error) {
+	queryStartDate := ctx.Query("start_date")
+	queryEndDate := ctx.Query("end_date")
+
+	startDate := new(time.Time)
+	endDate := new(time.Time)
+	parseLayout := "02-01-2006"
+
+	if queryStartDate != "" && queryEndDate != "" {
+		parsedStarDate, err := time.Parse(parseLayout, queryStartDate)
+		if err != nil {
+			return dto.GetSubscriptionReportResponse{}, errors.New("invalid start date format, expected dd-mm-yyyy")
+		}
+		parsedEndDate, err := time.Parse(parseLayout, queryEndDate)
+		if err != nil {
+			return dto.GetSubscriptionReportResponse{}, errors.New("invalid end date format, expected dd-mm-yyyy")
+		}
+
+		if parsedStarDate.After(parsedEndDate) {
+			return dto.GetSubscriptionReportResponse{}, errors.New("start date cannot be after end date")
+		}
+
+		startDate = &parsedStarDate
+		endDate = &parsedEndDate
+	} else {
+		now := time.Now()
+		daysEnd := now.Add(24 * time.Hour * 30)
+		startDate = &now
+		endDate = &daysEnd
+	}
+
+	// If no date range is provided, use the current date as both start and end date
+	getActiveSubscriptions, err := u.subRepo.GetActiveSubscriptions(nil, nil)
+	if err != nil {
+		return dto.GetSubscriptionReportResponse{}, err
+	}
+
+	// Get active subscriptions within the specified date range
+	getActiveSubscriptionsByDate, err := u.subRepo.GetActiveSubscriptions(startDate, endDate)
+	if err != nil {
+		return dto.GetSubscriptionReportResponse{}, err
+	}
+
+	allActiveSubscriptions := len(getActiveSubscriptions)
+	activeSubscriptionsByDate := len(getActiveSubscriptionsByDate)
+
+	totalRevenue := 0.0
+	for _, sub := range getActiveSubscriptions {
+		totalRevenue += sub.TotalPrice
+	}
+
+	totalRevenueByDate := 0.0
+	for _, sub := range getActiveSubscriptionsByDate {
+		totalRevenueByDate += sub.TotalPrice
+	}
+
+	return dto.GetSubscriptionReportResponse{
+		ActiveSubscriptionsByDate: activeSubscriptionsByDate,
+		TotalRevenue:              totalRevenue,
+		TotalActiveSubscriptions:  allActiveSubscriptions,
+		TotalRevenueByDate:        totalRevenueByDate,
+	}, nil
 }

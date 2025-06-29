@@ -53,3 +53,10 @@ type GetSubscriptionResponse struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
+
+type GetSubscriptionReportResponse struct {
+	ActiveSubscriptionsByDate int     `json:"active_subscriptions_by_date"`
+	TotalRevenue              float64 `json:"total_revenue"`
+	TotalActiveSubscriptions  int     `json:"total_active_subscriptions"`
+	TotalRevenueByDate        float64 `json:"total_revenue_by_date"`
+}

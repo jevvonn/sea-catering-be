@@ -30,6 +30,17 @@ definitions:
     - phone_number
     - plan_id
     type: object
+  dto.GetSubscriptionReportResponse:
+    properties:
+      active_subscriptions_by_date:
+        type: integer
+      total_active_subscriptions:
+        type: integer
+      total_revenue:
+        type: number
+      total_revenue_by_date:
+        type: number
+    type: object
   dto.GetSubscriptionResponse:
     properties:
       allergies:
@@ -44,6 +55,8 @@ definitions:
         type: array
       id:
         type: string
+      is_paused:
+        type: boolean
       mealtype:
         items:
           type: string
@@ -119,6 +132,8 @@ definitions:
       id:
         type: string
       name:
+        type: string
+      role:
         type: string
     type: object
   dto.TestimonialRequest:
@@ -440,6 +455,40 @@ paths:
       security:
       - BearerAuth: []
       summary: Update Subscription
+      tags:
+      - Subscription
+  /subscriptions/report:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: e.g 29-06-2025
+        in: query
+        name: start_date
+        type: string
+      - description: e.g 30-06-2025
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.JSONResponseModel'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.GetSubscriptionReportResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.JSONResponseModel'
+      security:
+      - BearerAuth: []
+      summary: Get Report Subscription
       tags:
       - Subscription
   /testimonials:

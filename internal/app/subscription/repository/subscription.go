@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jevvonn/sea-catering-be/internal/domain/entity"
 	"gorm.io/gorm"
@@ -11,6 +13,7 @@ type SubscriptionPostgreSQLItf interface {
 	GetSpecific(subscription entity.Subscription) (entity.Subscription, error)
 	CreateSubscription(subscription entity.Subscription) error
 	UpdateSubscription(subscription entity.Subscription) error
+	GetActiveSubscriptions(startDate *time.Time, endDate *time.Time) ([]entity.Subscription, error)
 }
 
 type SubscriptionPostgreSQL struct {
@@ -24,6 +27,27 @@ func NewSubscriptionPostgreSQL(db *gorm.DB) SubscriptionPostgreSQLItf {
 func (r *SubscriptionPostgreSQL) GetSubscriptions(cond entity.Subscription) ([]entity.Subscription, error) {
 	var subscriptions []entity.Subscription
 	if err := r.db.Preload("Plans").Preload("User").Where(cond).Find(&subscriptions).Error; err != nil {
+		return nil, err
+	}
+
+	return subscriptions, nil
+}
+
+func (r *SubscriptionPostgreSQL) GetActiveSubscriptions(startDate *time.Time, endDate *time.Time) ([]entity.Subscription, error) {
+	var subscriptions []entity.Subscription
+	query := r.db.Model(&entity.Subscription{}).
+		Preload("Plans").
+		Preload("User")
+
+	query = query.Where(entity.Subscription{
+		Status: "ACTIVE",
+	})
+
+	if startDate != nil && endDate != nil {
+		query = query.Where("created_at BETWEEN ? AND ?", startDate, endDate)
+	}
+
+	if err := query.Find(&subscriptions).Error; err != nil {
 		return nil, err
 	}
 

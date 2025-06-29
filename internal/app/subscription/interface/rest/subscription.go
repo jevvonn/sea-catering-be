@@ -3,6 +3,7 @@ package rest
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jevvonn/sea-catering-be/internal/app/subscription/usecase"
+	"github.com/jevvonn/sea-catering-be/internal/constant"
 	"github.com/jevvonn/sea-catering-be/internal/domain/dto"
 	"github.com/jevvonn/sea-catering-be/internal/infra/validator"
 	"github.com/jevvonn/sea-catering-be/internal/middleware"
@@ -22,6 +23,8 @@ func NewSubscriptionHandler(
 	handler := SubscriptionHandler{subUsecase, validator}
 
 	router.Get("/subscriptions", middleware.Authenticated, handler.GetSubscriptions)
+	router.Get("/subscriptions/report", middleware.Authenticated, middleware.RequireRoles(constant.RoleAdmin), handler.GetSubscriptionsReport)
+
 	router.Get("/subscriptions/:id", middleware.Authenticated, handler.GetSpecific)
 	router.Post("/subscriptions", middleware.Authenticated, handler.CreateSubscription)
 	router.Put("/subscriptions/:id", middleware.Authenticated, handler.UpdateSubscription)
@@ -181,6 +184,35 @@ func (h *SubscriptionHandler) UpdateSubscription(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusOK).JSON(
 		models.JSONResponseModel{
 			Message: "Subscription updated successfully",
+		},
+	)
+}
+
+// @Tags         Subscription
+// @Summary      Get Report Subscription
+// @Accept       json
+// @Produce      json
+// @Param        start_date query string false "e.g 29-06-2025"
+// @Param        end_date query string false "e.g 30-06-2025"
+// @Router       /subscriptions/report [get]
+// @Security     BearerAuth
+// @Success      200  {object}  models.JSONResponseModel{data=dto.GetSubscriptionReportResponse}
+// @Failure      400  {object}  models.JSONResponseModel
+func (h *SubscriptionHandler) GetSubscriptionsReport(ctx *fiber.Ctx) error {
+	report, err := h.subUsecase.GetSubscriptionsReport(ctx)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(
+			models.JSONResponseModel{
+				Message: "Failed to retrieve subscription report",
+				Errors:  err.Error(),
+			},
+		)
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(
+		models.JSONResponseModel{
+			Message: "Subscription report retrieved successfully",
+			Data:    report,
 		},
 	)
 }

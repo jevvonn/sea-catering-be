@@ -222,8 +222,6 @@ The project follows a standard Go application layout to separate concerns.
 ├── config/                 # Environment variable and configuration loading
 ├── docs/                   # Swagger documentation files
 ├── internal/               # Main application logic
-│   ├── controller/         # HTTP handlers (Fiber)
-│   ├── dto/                # Data Transfer Objects for requests/responses
 │   ├── domain/             # Domain models (entities and dtos)
 │   ├── middleware/         # Custom Fiber middleware (e.g., auth)
 │   ├── app/                # Application handler, usecases, and repositories
